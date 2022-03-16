@@ -7,10 +7,10 @@ const isProduction = process.env.NODE_ENV == 'production';
 
 const stylesHandler = 'style-loader';
 
-const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 
 const config = {
     entry: './src/index.ts',
+    devtool: 'inline-source-map',
     output: {
         path: path.resolve(__dirname, 'dist'),
         
