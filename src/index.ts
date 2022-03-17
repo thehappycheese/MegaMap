@@ -1,18 +1,20 @@
 
 
-import 'ol/ol.css';
-import Map from 'ol/Map';
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
+import { tableFromIPC } from 'apache-arrow';
 import Feature from 'ol/Feature';
 import { LineString } from 'ol/geom';
+import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
+import Map from 'ol/Map';
+import 'ol/ol.css';
+import OSM from 'ol/source/OSM';
+import VectorSource from 'ol/source/Vector';
+import Stroke from 'ol/style/Stroke';
+import Style from 'ol/style/Style';
 import View from 'ol/View';
 
-import { tableFromIPC } from 'apache-arrow';
-import Style from 'ol/style/Style';
-import Stroke from 'ol/style/Stroke';
+import { vlen, vsub } from './util/avec'
+
 
 const vsauce_state_roads = new VectorSource({});
 const vsauce_psps = new VectorSource({});
@@ -44,7 +46,7 @@ const map = new Map({
             })
         }),
         new VectorLayer({
-            minZoom: 15,
+            minZoom: 13,
             source: vsauce_local_roads
         }),
     ],
@@ -56,7 +58,7 @@ const map = new Map({
 });
 
 async function getdf() {
-    let table = await tableFromIPC(fetch("road_network.feather", {cache:"force-cache"}));
+    let table = await tableFromIPC(fetch("road_network.feather"));
 
     let id = -1;
     
@@ -67,29 +69,38 @@ async function getdf() {
         "Other": []
     }
     
-
     for (let row of table) {
         id++;
-
+        
         if (row===null || row === undefined) {
             continue;
         }
-
-        let feature = new Feature({
-            id,
-            geometry: new LineString(
-                row["geometry"].toArray().map((item:any)=>item.toJSON()) ?? [[0, 0], [90, 90]]
-            )
-        });
-        
         const NETWORK_TYPE = row["NETWORK_TYPE"];
+
+        
+        
+        let coords = row["geometry"].toArray().map((item:any)=>item.toJSON()) ?? [[0, 0], [90, 90]]
+        let geometry:LineString;
+        // I thought this would help with drawing the ticks... but i think it will no since we have to deal with pixel coordinates
+        // if (NETWORK_TYPE=="Local Road"){
+        //     geometry = new LineString(coords);
+        //     geometry.simplify(3);
+        // }else{
+        //     // modify coords to be measured LineString, uses a more ram, but hopefully makes our hatchings faster to compute
+        //     coords[0][2] = 0;
+        //     for(let i = 1; i < coords.length; i++) {
+        //         let len = vlen(vsub(coords[i-1], coords[i]));
+        //         coords[i][2] = coords[i-1][2] + len;
+        //     }
+        //     geometry = new LineString(coords, 'XYM')
+        // }
+        geometry = new LineString(coords)
+        if (NETWORK_TYPE=="Local Road"){
+            geometry = geometry.simplify(0.0001) as LineString
+        }
+        let feature = new Feature({id, geometry});
         if (NETWORK_TYPE in features) {
-            if (NETWORK_TYPE=="Local Road"){
-                feature.getGeometry()?.simplify(2)
-            }
             features[NETWORK_TYPE].push(feature);
-        }else{
-            features["Other"].push(feature);
         }
     }
     vsauce_local_roads.addFeatures(features["Local Road"]);
