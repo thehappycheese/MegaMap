@@ -6,7 +6,7 @@ const isProduction = process.env.NODE_ENV == 'production';
 
 
 const stylesHandler = 'style-loader';
-
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 
 const config = {
     entry: './src/index.ts',
@@ -27,6 +27,7 @@ const config = {
         } 
     },
     plugins: [
+        new NodePolyfillPlugin()
         // Add your plugins here
         // Learn more about plugins from https://webpack.js.org/configuration/plugins/
     ],
