@@ -81,9 +81,13 @@ async function getdf() {
                 row["geometry"].toArray().map((item:any)=>item.toJSON()) ?? [[0, 0], [90, 90]]
             )
         });
-        feature.getGeometry()?.simplify(0.1)
-        if (row["NETWORK_TYPE"] in features) {
-            features[row["NETWORK_TYPE"]].push(feature);
+        
+        const NETWORK_TYPE = row["NETWORK_TYPE"];
+        if (NETWORK_TYPE in features) {
+            if (NETWORK_TYPE=="Local Road"){
+                feature.getGeometry()?.simplify(2)
+            }
+            features[NETWORK_TYPE].push(feature);
         }else{
             features["Other"].push(feature);
         }

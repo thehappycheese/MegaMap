@@ -7,6 +7,7 @@ const isProduction = process.env.NODE_ENV == 'production';
 
 const stylesHandler = 'style-loader';
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const config = {
     entry: './src/index.ts',
@@ -14,8 +15,8 @@ const config = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         
-        chunkFilename: '[name].js',
-        filename: '[name].js'
+        // chunkFilename: '[name].js',
+        // filename: '[name].js'
         
     },
     devServer: {
@@ -27,7 +28,10 @@ const config = {
         } 
     },
     plugins: [
-        new NodePolyfillPlugin()
+        new NodePolyfillPlugin(),
+        new HtmlWebpackPlugin({
+            template:'src/index.html',
+        })
         // Add your plugins here
         // Learn more about plugins from https://webpack.js.org/configuration/plugins/
     ],
