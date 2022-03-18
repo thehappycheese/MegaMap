@@ -14,11 +14,11 @@ export async function get_road_network_layer(map:Map){
 
     let road_network_layer = new VectorLayer({
         source: new VectorSource({
-            features: features,
+            features: features.filter(item=>item.get("NETWORK_TYPE")==="State Road"),
         }),
-        style:new Style({
-            renderer
-        })
+        // style:new Style({
+        //     renderer
+        // })
     });
     return road_network_layer;
 }
