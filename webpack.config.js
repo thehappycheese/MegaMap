@@ -11,8 +11,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const config = {
     entry: './src/index.ts',
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
     output: {
+        //publicPath: 'dist/',
         path: path.resolve(__dirname, 'dist'),
         
         // chunkFilename: '[name].js',

@@ -1,8 +1,6 @@
 
 
-import { tableFromIPC } from 'apache-arrow';
-import Feature from 'ol/Feature';
-import { LineString } from 'ol/geom';
+
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import Map from 'ol/Map';
@@ -12,6 +10,7 @@ import VectorSource from 'ol/source/Vector';
 import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import View from 'ol/View';
+import { get_road_network_layer } from './layers/road_network/layer';
 
 import { vlen, vsub } from './util/avec'
 
@@ -57,64 +56,13 @@ const map = new Map({
     }),
 });
 
-async function getdf() {
-    let table = await tableFromIPC(fetch("road_network.feather"));
 
-    let id = -1;
-    
-    let features:any ={
-        "State Road": [],
-        "Main Roads Controlled Path": [],
-        "Local Road": [],
-        "Other": []
-    }
-    
-    for (let row of table) {
-        id++;
-        
-        if (row===null || row === undefined) {
-            continue;
-        }
-        const NETWORK_TYPE = row["NETWORK_TYPE"];
-
-        
-        
-        let coords = row["geometry"].toArray().map((item:any)=>item.toJSON()) ?? [[0, 0], [90, 90]]
-        let geometry:LineString;
-        // I thought this would help with drawing the ticks... but i think it will no since we have to deal with pixel coordinates
-        // if (NETWORK_TYPE=="Local Road"){
-        //     geometry = new LineString(coords);
-        //     geometry.simplify(3);
-        // }else{
-        //     // modify coords to be measured LineString, uses a more ram, but hopefully makes our hatchings faster to compute
-        //     coords[0][2] = 0;
-        //     for(let i = 1; i < coords.length; i++) {
-        //         let len = vlen(vsub(coords[i-1], coords[i]));
-        //         coords[i][2] = coords[i-1][2] + len;
-        //     }
-        //     geometry = new LineString(coords, 'XYM')
-        // }
-        geometry = new LineString(coords)
-        if (NETWORK_TYPE=="Local Road"){
-            geometry = geometry.simplify(0.0001) as LineString
-        }
-        let feature = new Feature({id, geometry});
-        if (NETWORK_TYPE in features) {
-            features[NETWORK_TYPE].push(feature);
-        }
-    }
-    vsauce_local_roads.addFeatures(features["Local Road"]);
-    vsauce_psps.addFeatures(features["Main Roads Controlled Path"]);
-    vsauce_state_roads.addFeatures(features["State Road"]);
-    map.getView().fit(vsauce_state_roads.getExtent())
-};
-
-
-
-
-// declare module globalThis {
-//     var getdf: any;
-// }
-// globalThis.getdf = getdf2;
-
-getdf()
+async function main() {
+    let road_network_layer = await get_road_network_layer(map);
+    map.addLayer(road_network_layer);
+    // vsauce_local_roads.addFeatures(features["Local Road"]);
+    // vsauce_psps.addFeatures(features["Main Roads Controlled Path"]);
+    // vsauce_state_roads.addFeatures(features["State Road"]);
+    // map.getView().fit(vsauce_state_roads.getExtent())
+}
+main()

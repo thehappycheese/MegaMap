@@ -41,7 +41,7 @@ export function linestring_ticks(
     // initial_offset_px                            px |<⁠— px —>|
 
 
-	let result:[[number[],number[]], string | undefined, number][] = [];
+	let result:[[[number,number],[number, number]], string | undefined, number][] = [];
 	let [points, length_px] = measured_line_string;
 
 	let length_km = slk_to - slk_from;
